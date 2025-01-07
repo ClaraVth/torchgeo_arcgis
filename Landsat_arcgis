@@ -231,5 +231,3 @@ class TrainLandUseModel:
         messages.addMessage("Training completed successfully.")
 
         return
-
-#test
