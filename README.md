@@ -2,7 +2,7 @@
 Implementation of TorchGeo into ArcGIS Pro
 
 ## Set up the enviroment
-ArcGIS Pro needs to be installed - I use version 3.4 (does only work on Windows)
+ArcGIS Pro needs to be installed - does only work on Windows - I use version 3.4
 
 Create a virtual environment with python 3.11
 install the following packages:
