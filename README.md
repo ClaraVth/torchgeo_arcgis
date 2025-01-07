@@ -10,7 +10,7 @@ install the following packages:
 - torchgeo 0.6.2
 - torch 2.2.2, torchvision 0.17.2, torchaudio 2.5.0
 
-In ArcGIS:
+In ArcGIS Pro:
 - Set the virtual environment: Settings > Package Manager > Environment Manager > Add existing environment > Activate in list
 - Add the .pyt script to the ArcGIS Pro Project Folder
 - Add Toolbox: Content Pane > Right Click on Toolboxes > Add Toolbox (Navigate to location on PC)
