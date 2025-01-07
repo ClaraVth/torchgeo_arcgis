@@ -14,3 +14,6 @@ In ArcGIS Pro:
 - Set the virtual environment: Settings > Package Manager > Environment Manager > Add existing environment > Activate in list
 - Add the .pyt script to the ArcGIS Pro Project Folder
 - Add Toolbox: Content Pane > Right Click on Toolboxes > Add Toolbox (Navigate to location on PC)
+
+## Example Usage
+So far, the Tool is designed for Landsat data. Therefore, I downloaded the Landsat 7, Landsat 8, and CDL datasets from https://huggingface.co/datasets/torchgeo/tutorials/tree/main.
