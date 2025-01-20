@@ -131,5 +131,5 @@ class TrainLandUseModel:
 
         # Start training
         messages.addMessage("Starting the training process...")
-        trainer.fit(task, train_dataloaders=dataloader)
+        trainer.fit(model=task, dataloader=dataloader)
         messages.addMessage("Training completed successfully.")
