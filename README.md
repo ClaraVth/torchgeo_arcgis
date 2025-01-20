@@ -7,7 +7,11 @@ ArcGIS Pro needs to be installed. It does not work on MacOS! I use version 3.4
 Create a virtual environment with python 3.11 and install the following packages:
 ```sh
 conda create -n NAME python=3.11
+```
+```sh
 conda activate NAME
+```
+```sh
 conda install arcpy=3.4 -c esri
 conda install pytorch torchvision  -c pytorch
 pip install torchgeo
