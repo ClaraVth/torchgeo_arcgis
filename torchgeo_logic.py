@@ -63,6 +63,7 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
         lr=1e-3,
     )
 
+    """
     data_module = GeoDataModule(
         dataset_class=RasterDataset,
         batch_size=batch_size,
@@ -70,7 +71,8 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
         num_workers=4,
         paths=[image_path, mask_path],
     )
-
+    """
+    
     # Configure Logger
     logger = TensorBoardLogger(save_dir=out_folder, name="segmentation_logs")
 
@@ -83,7 +85,7 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
     )
 
     # Start training
-    trainer.fit(model=task, datamodule=data_module) #, train_dataloaders=dataloader
+    trainer.fit(model=task, train_dataloaders=dataloader) #, datamodule=data_module
 
 in_image = r"data\LC08_L2SP_023032_20230831_20230911_02_T1_SR_B1.TIF"
 in_mask = r"data\2023_30m_cdls.tif"

@@ -1,0 +1,13 @@
+ignore: weights
+model: unet
+backbone: resnet50
+in_channels: 3
+num_classes: 30
+num_filters: 3
+loss: ce
+class_weights: null
+ignore_index: null
+lr: 0.001
+patience: 10
+freeze_backbone: false
+freeze_decoder: false
