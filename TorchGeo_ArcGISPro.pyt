@@ -6,12 +6,17 @@ import glob
 import torch
 import rasterio
 import numpy as np
+import gc
 from torch.utils.data import DataLoader
 from torchgeo.datasets import RasterDataset, VectorDataset, stack_samples
+
 from torchgeo.samplers import GridGeoSampler
 from torchgeo.trainers.segmentation import SemanticSegmentationTask
 from lightning.pytorch import Trainer
 from lightning.pytorch.loggers import TensorBoardLogger
+
+# ------------------------- Helper functions -------------------------
+
 
 # ------------------------- Toolbox Definition -------------------------
 class Toolbox:
@@ -26,7 +31,7 @@ class TrainLandUseModel:
     def __init__(self):
         self.label = "Train Land Cover Mapping Model"
         self.description = "Train a TorchGeo-based semantic segmentation model."
-        self.canRunInBackground = False
+        self.canRunInBackground = True
 
     def getParameterInfo(self):
         """Define parameter definitions."""
@@ -36,7 +41,7 @@ class TrainLandUseModel:
             datatype="GPRasterLayer",
             parameterType="Required",
             direction="Input",
-            multiValue=True,
+            #multiValue=True,
         )
 
         param01 = arcpy.Parameter(
@@ -76,7 +81,11 @@ class TrainLandUseModel:
 
     def execute(self, parameters, messages):
         """Main execution logic of the tool."""
-        image_layers = parameters[0].values  # List of input raster layers
+        gc.collect()
+        torch.cuda.empty_cache()
+        
+        #image_layers = parameters[0].values  # List of input raster layers
+        image_layers = parameters[0].value  # For only 1 possible input
         mask_layer = parameters[1].value
         out_folder = parameters[2].valueAsText
         batch_size = parameters[3].value
@@ -86,7 +95,8 @@ class TrainLandUseModel:
         os.makedirs(out_folder, exist_ok=True)
 
         # Initialize RasterDataset for input images
-        image_dataset = RasterDataset(paths=[arcpy.Describe(layer).catalogPath for layer in image_layers])
+        #image_dataset = RasterDataset(paths=[arcpy.Describe(layer).catalogPath for layer in image_layers])
+        image_dataset = RasterDataset(paths=arcpy.Describe(image_layers).catalogPath)
         messages.addMessage(f"Image Dataset: {image_dataset}")
 
         # Initialize VectorDataset for mask layer
@@ -112,7 +122,7 @@ class TrainLandUseModel:
         task = SemanticSegmentationTask(
             model="unet",
             backbone="resnet50",
-            in_channels=1,  # Assuming 1 band for simplicity
+            in_channels=3,  # Assuming 3 bands for simplicity
             num_classes=num_classes,
             loss="ce",
             lr=1e-3,
@@ -131,5 +141,6 @@ class TrainLandUseModel:
 
         # Start training
         messages.addMessage("Starting the training process...")
-        trainer.fit(model=task, dataloader=dataloader)
+        trainer.fit(model=task, train_dataloaders=dataloader)
         messages.addMessage("Training completed successfully.")
+
