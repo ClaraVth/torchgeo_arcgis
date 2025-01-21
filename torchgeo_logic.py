@@ -14,7 +14,11 @@ import numpy as np
 import os
 
 # ------------------------- Helper Classes -------------------------
-
+class DropFrozenKeys:
+    def __call__(self, sample):
+        sample.pop('crs')
+        sample.pop('bounds')
+        return sample
 
 # ------------------------- Tool Definition -------------------------
 
@@ -35,9 +39,12 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
     """
     os.makedirs(out_folder, exist_ok=True)
 
+    transforms = DropFrozenKeys()
+
     # Initialize datasets
-    image_dataset = RasterDataset(paths=image_path)
-    mask_dataset = RasterDataset(paths=mask_path)
+    image_dataset = RasterDataset(paths=image_path, transforms=transforms)
+    mask_dataset = RasterDataset(paths=mask_path, transforms=transforms)
+    mask_dataset.is_image = False
 
     # combine datasets
     dataset = image_dataset & mask_dataset
@@ -57,7 +64,7 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
     task = SemanticSegmentationTask(
         model="unet",
         backbone="resnet50",
-        in_channels=3,  # Assumption: 3 channels in input image
+        in_channels=1,  # Assumption: 3 channels in input image
         num_classes=num_classes,
         loss="ce",
         lr=1e-3,
