@@ -3,6 +3,7 @@ from torch import Tensor
 from torchgeo.datasets import RasterDataset, stack_samples
 from torchgeo.samplers import GridGeoSampler
 from torchgeo.trainers.segmentation import SemanticSegmentationTask
+from torchgeo.datamodules import GeoDataModule
 from lightning.pytorch import Trainer, LightningDataModule
 from lightning.pytorch.loggers import TensorBoardLogger
 from torch.utils.data import DataLoader
@@ -62,6 +63,14 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
         lr=1e-3,
     )
 
+    data_module = GeoDataModule(
+        dataset_class=RasterDataset,
+        batch_size=batch_size,
+        patch_size=patch_size,
+        num_workers=4,
+        paths=[image_path, mask_path],
+    )
+
     # Configure Logger
     logger = TensorBoardLogger(save_dir=out_folder, name="segmentation_logs")
 
@@ -74,11 +83,11 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
     )
 
     # Start training
-    trainer.fit(model=task, train_dataloaders=dataloader)
+    trainer.fit(model=task, datamodule=data_module) #, train_dataloaders=dataloader
 
 in_image = r"data\LC08_L2SP_023032_20230831_20230911_02_T1_SR_B1.TIF"
 in_mask = r"data\2023_30m_cdls.tif"
-out_folder = r"C:\ArcGIS_Projects\Torchgeo_ArcGIS\GitHub\torchgeo_arcgis"
+out_folder = r"."
 batch_size = 8
 epochs = 10
 
