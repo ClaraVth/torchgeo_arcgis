@@ -1,6 +1,6 @@
 import torch
 from torch import Tensor
-from torchgeo.datasets import RasterDataset, stack_samples
+from torchgeo.datasets import RasterDataset, stack_samples, GeoDataset
 from torchgeo.samplers import GridGeoSampler
 from torchgeo.trainers.segmentation import SemanticSegmentationTask
 from torchgeo.datamodules import GeoDataModule
@@ -48,12 +48,20 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
 
     # combine datasets
     dataset = image_dataset & mask_dataset
+    print(dataset)
 
     #data_module = CostumGeoDataModule(image_path, mask_path, patch_size, batch_size)
 
     # Configure Sampler and DataLoader
     sampler = GridGeoSampler(dataset, size=patch_size, stride=patch_size)
-    dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler, collate_fn=stack_samples)
+    dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler, num_workers=0, collate_fn=stack_samples)
+    for batch in dataloader:
+        x, y = batch["image"], batch["mask"]
+        y = y.squeeze(1)  # Remove channel dimension
+        x = x.squeeze(1)
+        print(f"x.shape: {x.shape}, y.shape: {y.shape}")
+        break
+
 
     # Extract number of classes from mask
     with rasterio.open(mask_path) as src:
@@ -64,7 +72,7 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
     task = SemanticSegmentationTask(
         model="unet",
         backbone="resnet50",
-        in_channels=1,  # Assumption: 3 channels in input image
+        in_channels=1,  # Assumption: 1 channel in input image
         num_classes=num_classes,
         loss="ce",
         lr=1e-3,
@@ -88,15 +96,15 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
         max_epochs=epochs,
         logger=logger,
         log_every_n_steps=10,
-        accelerator="gpu" if torch.cuda.is_available() else "cpu",
+        accelerator="gpu",  # if torch.cuda.is_available() else "cpu",
     )
 
     # Start training
     trainer.fit(model=task, train_dataloaders=dataloader) #, datamodule=data_module
 
-in_image = r"data\LC08_L2SP_023032_20230831_20230911_02_T1_SR_B1.TIF"
-in_mask = r"data\2023_30m_cdls.tif"
-out_folder = r"."
+in_image = "torchgeo_arcgis/data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B1.TIF"
+in_mask = "torchgeo_arcgis/data/2023_30m_cdls.tif"
+out_folder = "."
 batch_size = 8
 epochs = 10
 
