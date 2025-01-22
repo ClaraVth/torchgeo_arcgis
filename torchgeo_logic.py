@@ -27,12 +27,12 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
     Führt die gesamte Trainingslogik für das TorchGeo-Modell aus.
 
     Args:
-        image_path (str): Pfad zur Eingabedatei (Rasterbild).
-        mask_path (str): Pfad zur Maskendatei.
-        out_folder (str): Ausgabeverzeichnis.
-        batch_size (int): Batch-Größe.
-        epochs (int): Anzahl der Trainings-Epochen.
-        patch_size (int): Größe der Patches für das Modell.
+        image_path (str): Path to input image.
+        mask_path (str): Path to the mask.
+        out_folder (str): Output folder.
+        batch_size (int): Batch size.
+        epochs (int): Number of Training epochs.
+        patch_size (int): Path size for the model.
 
     Returns:
         None
@@ -96,14 +96,14 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
         max_epochs=epochs,
         logger=logger,
         log_every_n_steps=10,
-        accelerator="gpu",  # if torch.cuda.is_available() else "cpu",
+        accelerator="gpu" if torch.cuda.is_available() else "cpu",  # if torch.cuda.is_available() else "cpu",
     )
 
     # Start training
     trainer.fit(model=task, train_dataloaders=dataloader) #, datamodule=data_module
 
-in_image = "torchgeo_arcgis/data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B1.TIF"
-in_mask = "torchgeo_arcgis/data/2023_30m_cdls.tif"
+in_image = "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B1.TIF"
+in_mask = "data/2023_30m_cdls.tif"
 out_folder = "."
 batch_size = 8
 epochs = 10
