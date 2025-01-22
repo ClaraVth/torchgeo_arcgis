@@ -18,6 +18,7 @@ class DropFrozenKeys:
     def __call__(self, sample):
         sample.pop('crs')
         sample.pop('bounds')
+        #sample['bounds']=torch.tensor(sample['bounds'])
         return sample
 
 # ------------------------- Tool Definition -------------------------
@@ -50,15 +51,15 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
     dataset = image_dataset & mask_dataset
     print(dataset)
 
-    #data_module = CostumGeoDataModule(image_path, mask_path, patch_size, batch_size)
+    
 
     # Configure Sampler and DataLoader
     sampler = GridGeoSampler(dataset, size=patch_size, stride=patch_size)
     dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler, num_workers=0, collate_fn=stack_samples)
     for batch in dataloader:
         x, y = batch["image"], batch["mask"]
-        y = y.squeeze(1)  # Remove channel dimension
-        x = x.squeeze(1)
+        #y = y.squeeze(1)  # Remove channel dimension
+        #x = x.squeeze(1)
         print(f"x.shape: {x.shape}, y.shape: {y.shape}")
         break
 
@@ -96,7 +97,7 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
         max_epochs=epochs,
         logger=logger,
         log_every_n_steps=10,
-        accelerator="gpu" if torch.cuda.is_available() else "cpu",  # if torch.cuda.is_available() else "cpu",
+        accelerator="gpu" if torch.cuda.is_available() else "cpu",
     )
 
     # Start training
