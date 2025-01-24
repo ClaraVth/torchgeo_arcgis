@@ -105,24 +105,22 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
     print("start training ...")
     trainer.fit(model=task, train_dataloaders=dataloader) #, datamodule=data_module
 
-
-#in_files = ["data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B1.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B2.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B3.TIF"]
-#transforms = DropFrozenKeys()
-#in_image = RasterDataset(paths=in_image[0], transforms=transforms) & RasterDataset(paths=in_image[1], transforms=transforms) & RasterDataset(paths=in_image[2], transforms=transforms)
-#out_file = "data/multispectral_image.TIF"
 """
+in_files = ["data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B1.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B2.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B3.TIF"]
+#out_file = "data/multispectral_image.TIF"
+
 with rasterio.open(in_files[0]) as src:
     metadata = src.meta
 metadata.update({
-    "count": len(in_files),  # Anzahl der Bänder
+    "count": len(in_files),  # Number of bands
 })
 with rasterio.open(out_file, "w", **metadata) as dst:
     for band_index, file in enumerate(in_files, start=1):
         with rasterio.open(file) as src:
-            band = src.read(1)  # Lies das erste Band
-            dst.write(band, band_index)  # Schreibe das Band in die entsprechende Position
+            band = src.read(1)  # Read first band
+            dst.write(band, band_index)  # Write band in corresponding position
 
-print(f"Multispektrale Datei erfolgreich erstellt: {out_file}")
+print(f"Multispectral image: {out_file}")
 """
 in_image = "data/multispectral_image.TIF"
 in_mask = "data/2023_30m_cdls.tif"
