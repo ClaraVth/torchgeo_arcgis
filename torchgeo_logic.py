@@ -17,7 +17,8 @@ import os
 class DropFrozenKeys:
     def __call__(self, sample):
         sample.pop('crs')
-        sample.pop('bounds')
+        bbox = sample['bounds']
+        sample['bounds'] = torch.tensor([bbox.minx, bbox.miny, bbox.maxx, bbox.maxy])
         #sample['bounds']=torch.tensor(sample['bounds'])
         return sample
 
@@ -73,7 +74,7 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
     task = SemanticSegmentationTask(
         model="unet",
         backbone="resnet50",
-        in_channels=1,  # Assumption: 1 channel in input image
+        in_channels=3,  # Assumption: 1 channel in input image
         num_classes=num_classes,
         loss="ce",
         lr=1e-3,
@@ -101,9 +102,29 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
     )
 
     # Start training
+    print("start training ...")
     trainer.fit(model=task, train_dataloaders=dataloader) #, datamodule=data_module
 
-in_image = "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B1.TIF"
+
+#in_files = ["data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B1.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B2.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B3.TIF"]
+#transforms = DropFrozenKeys()
+#in_image = RasterDataset(paths=in_image[0], transforms=transforms) & RasterDataset(paths=in_image[1], transforms=transforms) & RasterDataset(paths=in_image[2], transforms=transforms)
+#out_file = "data/multispectral_image.TIF"
+"""
+with rasterio.open(in_files[0]) as src:
+    metadata = src.meta
+metadata.update({
+    "count": len(in_files),  # Anzahl der Bänder
+})
+with rasterio.open(out_file, "w", **metadata) as dst:
+    for band_index, file in enumerate(in_files, start=1):
+        with rasterio.open(file) as src:
+            band = src.read(1)  # Lies das erste Band
+            dst.write(band, band_index)  # Schreibe das Band in die entsprechende Position
+
+print(f"Multispektrale Datei erfolgreich erstellt: {out_file}")
+"""
+in_image = "data/multispectral_image.TIF"
 in_mask = "data/2023_30m_cdls.tif"
 out_folder = "."
 batch_size = 8
