@@ -114,11 +114,12 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
     sampler = RandomGeoSampler(dataset, size=patch_size)    #, stride=patch_size
     dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler, num_workers=0, collate_fn=custom_stack_samples)
     #print(f"Dataset keys: {list(dataset[0].keys())}")
+    """
     for batch in dataloader:
         x, y = batch["image"], batch["mask"]
         print(f"x.shape: {x.shape}, y.shape: {y.shape}")
         break
-
+    """
 
     # Extract number of classes from mask
     with rasterio.open(mask_path) as src:
@@ -163,7 +164,7 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
     trainer = Trainer(
         max_epochs=epochs,
         logger=logger,
-        log_every_n_steps=10,
+        log_every_n_steps=1,
         accelerator="gpu" if torch.cuda.is_available() else "cpu",
     )
 
@@ -174,7 +175,7 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
     # Save the trained model
     torch.save(task.state_dict(), os.path.join(out_folder, "trained_model.pth"))
     print(f"Model saved to {os.path.join(out_folder, 'trained_model.pth')}")
-    return(num_bands, num_classes, os.path.join(out_folder, 'trained_model.pth'))
+    return(num_bands, num_classes, num_bands, os.path.join(out_folder, 'trained_model.pth'))
 
 # ------------------------- Segmentation -------------------------
 
@@ -231,19 +232,19 @@ def prediction(image_path, model_path, output_path, num_bands, num_classes, patc
             dst.write(y_pred.astype(np.uint8), 1)
         print(f"Saved prediction to {output_path}.")
 
-# ------------------------- Application -------------------------
+# ------------------------- Run -------------------------
 
 #in_files = ["data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B1.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B2.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B3.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B4.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B5.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B6.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B7.TIF"]
 #in_image = combine_bands(in_files)
 in_image = "data/multispectral_image.TIF"
 in_mask = "data/2023_30m_cdls.tif"
 out_folder = "."
-batch_size = 16
-epochs = 8
+batch_size = 8
+epochs = 10
 
-#num_bands, num_classes, trained_model_path = train_model(in_image, in_mask, out_folder, batch_size, epochs)
+num_bands, num_classes, num_bands, trained_model_path = train_model(in_image, in_mask, out_folder, batch_size, epochs)
 
 test_image = "data/test_image_cropped.tif"
 trained_model = "./trained_model.pth"
 output_prediction = "output/prediction_output.TIF"
-prediction(test_image, trained_model, output_prediction, 7, 226)    #num_classes
+prediction(test_image, trained_model, output_prediction, num_classes, num_classes)
