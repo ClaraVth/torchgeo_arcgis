@@ -86,7 +86,7 @@ def custom_stack_samples(samples: Iterable[Mapping[Any, Any]]) -> dict[Any, Any]
 
 # ------------------------- Tool Definitions -------------------------
 # ------------------------- Training -------------------------
-def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_size=64):
+def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_size=128):
     """
     Args:
         image_path (str): Path to input image.
@@ -113,6 +113,7 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
     # Configure Sampler and DataLoader
     sampler = RandomGeoSampler(dataset, size=patch_size)    #, stride=patch_size
     dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler, num_workers=0, collate_fn=custom_stack_samples)
+    #print(f"Dataset keys: {list(dataset[0].keys())}")
     for batch in dataloader:
         x, y = batch["image"], batch["mask"]
         print(f"x.shape: {x.shape}, y.shape: {y.shape}")
@@ -122,19 +123,21 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
     # Extract number of classes from mask
     with rasterio.open(mask_path) as src:
         mask_data = src.read(1)
-        num_classes = len(np.unique(mask_data))
-        #print(f"Number of classes: {num_classes}")
+        #print(src.read(1))
+        #num_classes = len(np.unique(mask_data))
+        num_classes = int(mask_data.max()+1) # in order to keep the original indizes
+        print(f"Number of classes: {num_classes}")
     
     with rasterio.open(image_path) as src:
         num_bands = src.count
-        #print(f"Number of bands: {num_bands}")
+        print(f"Number of bands: {num_bands}")
 
     # Configure the model
     task = SemanticSegmentationTask(
         model="unet",
         backbone="resnet50",
         in_channels=num_bands,
-        num_classes=255, #num_classes,
+        num_classes=num_classes,
         loss="ce",
         lr=1e-3,
     )
@@ -175,7 +178,7 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
 
 # ------------------------- Segmentation -------------------------
 
-def prediction(image_path, model_path, output_path, num_bands, patch_size=64):
+def prediction(image_path, model_path, output_path, num_bands, num_classes, patch_size=128):
     """
     Applies a trained model to new data for prediction using Trainer.predict.
 
@@ -192,8 +195,8 @@ def prediction(image_path, model_path, output_path, num_bands, patch_size=64):
     task = SemanticSegmentationTask(
         model="unet",
         backbone="resnet50",
-        in_channels=num_bands,  # Adjust to match input channels
-        num_classes=255,  # Adjust to match the number of classes
+        in_channels=num_bands,
+        num_classes=num_classes,
     )
     task.load_state_dict(torch.load(model_path))
     task.eval()  # Set the model to evaluation mode
@@ -230,17 +233,17 @@ def prediction(image_path, model_path, output_path, num_bands, patch_size=64):
 
 # ------------------------- Application -------------------------
 
-#in_files = ["data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B1.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B2.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B3.TIF"]
+#in_files = ["data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B1.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B2.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B3.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B4.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B5.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B6.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B7.TIF"]
 #in_image = combine_bands(in_files)
-in_image = "data/training_image_cropped.tif"
+in_image = "data/multispectral_image.TIF"
 in_mask = "data/2023_30m_cdls.tif"
 out_folder = "."
-batch_size = 8
-epochs = 3
+batch_size = 16
+epochs = 8
 
 #num_bands, num_classes, trained_model_path = train_model(in_image, in_mask, out_folder, batch_size, epochs)
 
 test_image = "data/test_image_cropped.tif"
 trained_model = "./trained_model.pth"
 output_prediction = "output/prediction_output.TIF"
-prediction(test_image, trained_model, output_prediction, 3)
+prediction(test_image, trained_model, output_prediction, 7, 226)    #num_classes

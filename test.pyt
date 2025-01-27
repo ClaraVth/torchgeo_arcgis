@@ -78,7 +78,8 @@ output_tiff = "data/training_image_cropped.tif"
 
 # Cut 20% from the top
 #cut_tiff(input_tiff, output_tiff, cut_percentage=0.2)
+print(f"Cropped TIFF saved to: {output_tiff}")
+
 output_tiff = "data/test_image_cropped.tif"
 cut_tiff_remainder(input_tiff, output_tiff, cut_percentage=0.2)
-
 print(f"Cropped TIFF saved to: {output_tiff}")
