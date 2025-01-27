@@ -111,7 +111,7 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
     
 
     # Configure Sampler and DataLoader
-    sampler = RandomGeoSampler(dataset, size=patch_size)    #, stride=patch_size
+    sampler = RandomGeoSampler(dataset, size=patch_size)
     dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler, num_workers=0, collate_fn=custom_stack_samples)
     #print(f"Dataset keys: {list(dataset[0].keys())}")
     """
@@ -240,11 +240,11 @@ in_image = "data/multispectral_image.TIF"
 in_mask = "data/2023_30m_cdls.tif"
 out_folder = "."
 batch_size = 8
-epochs = 10
+epochs = 25
 
 num_bands, num_classes, num_bands, trained_model_path = train_model(in_image, in_mask, out_folder, batch_size, epochs)
 
 test_image = "data/test_image_cropped.tif"
 trained_model = "./trained_model.pth"
 output_prediction = "output/prediction_output.TIF"
-prediction(test_image, trained_model, output_prediction, num_classes, num_classes)
+prediction(test_image, trained_model, output_prediction, num_bands, num_classes)
