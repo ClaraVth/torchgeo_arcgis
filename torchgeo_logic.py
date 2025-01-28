@@ -86,7 +86,7 @@ def custom_stack_samples(samples: Iterable[Mapping[Any, Any]]) -> dict[Any, Any]
 
 # ------------------------- Tool Definitions -------------------------
 # ------------------------- Training -------------------------
-def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_size=128):
+def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_size=64):
     """
     Args:
         image_path (str): Path to input image.
@@ -175,11 +175,11 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
     # Save the trained model
     torch.save(task.state_dict(), os.path.join(out_folder, "trained_model.pth"))
     print(f"Model saved to {os.path.join(out_folder, 'trained_model.pth')}")
-    return(num_bands, num_classes, num_bands, os.path.join(out_folder, 'trained_model.pth'))
+    return(num_bands, num_classes, os.path.join(out_folder, 'trained_model.pth'))
 
 # ------------------------- Segmentation -------------------------
 
-def prediction(image_path, model_path, output_path, num_bands, num_classes, patch_size=128):
+def prediction(image_path, model_path, output_path, num_bands, num_classes, patch_size=64):
     """
     Applies a trained model to new data for prediction using Trainer.predict.
 
@@ -233,18 +233,19 @@ def prediction(image_path, model_path, output_path, num_bands, num_classes, patc
         print(f"Saved prediction to {output_path}.")
 
 # ------------------------- Run -------------------------
-
-#in_files = ["data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B1.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B2.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B3.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B4.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B5.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B6.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B7.TIF"]
-#in_image = combine_bands(in_files)
-in_image = "data/multispectral_image.TIF"
+"""
+in_files = ["data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B1.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B2.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B3.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B4.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B5.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B6.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B7.TIF"]
+in_image = combine_bands(in_files)
+"""
+in_image = "data/training_image_cropped.tif"
 in_mask = "data/2023_30m_cdls.tif"
 out_folder = "."
 batch_size = 8
-epochs = 25
+epochs = 1
 
-num_bands, num_classes, num_bands, trained_model_path = train_model(in_image, in_mask, out_folder, batch_size, epochs)
+num_bands, num_classes, trained_model_path = train_model(in_image, in_mask, out_folder, batch_size, epochs)
 
 test_image = "data/test_image_cropped.tif"
 trained_model = "./trained_model.pth"
-output_prediction = "output/prediction_output.TIF"
+output_prediction = "output/1_prediction_output.TIF"
 prediction(test_image, trained_model, output_prediction, num_bands, num_classes)
