@@ -1,0 +1,11 @@
+# Exclude macOS specific files
+.DS_Store
+
+# Exclude trained models
+trained_model.pth
+
+# Exclude specific folders
+__pycache__/
+data/
+lightning_logs/
+output/
