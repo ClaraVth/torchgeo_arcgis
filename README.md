@@ -28,4 +28,6 @@ The .pyt file has been created and works in the environment of ArcGIS Pro. AAfte
 This is not an issue with the ArcGIS implementation. Therefore, the error must be within torchgeo_logic.py.
 
 ## Example Usage
-I downloaded the Landsat 7, Landsat 8, and CDL datasets for testing from https://huggingface.co/datasets/torchgeo/tutorials/tree/main.
+I downloaded the Landsat 7, Landsat 8, and CDL datasets for testing from [here](https://huggingface.co/datasets/torchgeo/tutorials/tree/main).\
+Larger datasets can be loaded from the [USGS EarthExplorer](https://earthexplorer.usgs.gov) and [USDA](https://www.nass.usda.gov/Research_and_Science/Cropland/Release/index.php).
+
