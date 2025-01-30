@@ -12,3 +12,6 @@ output/
 
 # Exclude xml files
 *.xml
+
+# Exclude test file (just for me testing stuff without changing the actual script)
+test.pyt
