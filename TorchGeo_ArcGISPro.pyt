@@ -37,7 +37,7 @@ def combine_bands(in_files):
                 band = src.read(1)  # Read first band
                 dst.write(band, band_index)  # Write band in corresponding position
 
-    messages.addMessage(f"Multispectral image: {out_file}")
+    #messages.addMessage(f"Multispectral image: {out_file}")
     return(out_file)
 
 
