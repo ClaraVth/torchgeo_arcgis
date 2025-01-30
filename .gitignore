@@ -9,3 +9,6 @@ __pycache__/
 data/
 lightning_logs/
 output/
+
+# Exclude xml files
+*.xml
