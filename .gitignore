@@ -1,13 +1,15 @@
 # Exclude macOS specific files
 .DS_Store
 
-# Exclude trained models
+# Exclude trained model and converted mask
 trained_model.pth
+processed_mask.tif
 
 # Exclude specific folders
 __pycache__/
 data/
 lightning_logs/
+segmentation_logs/
 output/
 
 # Exclude xml files
