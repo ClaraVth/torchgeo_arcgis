@@ -134,7 +134,7 @@ class TrainLandUseModel:
             parameterType="Required",
             direction="Input",
         )
-        param2.value = 8
+        param2.value = 64
 
         param3 = arcpy.Parameter(
             displayName="Number of Epochs",

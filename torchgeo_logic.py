@@ -83,6 +83,66 @@ def custom_stack_samples(samples: Iterable[Mapping[Any, Any]]) -> dict[Any, Any]
 
     return collated
 
+def preprocess_mask(mask_path):
+    """
+    Preprocesses the mask to map unique class values to sequential indices.
+
+    Args:
+        mask_path (str): Path to the mask image.
+
+    Returns:
+        processed_mask_path (str): Path to the processed mask image with indices.
+        class_to_index (dict): Mapping from original class values to indices.
+        index_to_class (dict): Mapping from indices back to original class values.
+    """
+    with rasterio.open(mask_path) as src:
+        mask = src.read(1)  # Read the first band
+        meta = src.meta.copy()
+
+    # Create mappings
+    unique_classes = np.unique(mask)
+    class_to_index = {value: idx + 1 for idx, value in enumerate(unique_classes)}  # Start index at 1
+    index_to_class = {idx: value for value, idx in class_to_index.items()}
+
+    # Replace class values with indices
+    indexed_mask = np.vectorize(class_to_index.get)(mask)
+
+    # Save the processed mask
+    processed_mask_path = "processed_mask.tif"
+    meta.update({"dtype": "uint8", "count": 1})
+    with rasterio.open(processed_mask_path, "w", **meta) as dst:
+        dst.write(indexed_mask.astype(np.uint8), 1)
+
+    print(f"Processed mask saved to {processed_mask_path}")
+    return processed_mask_path, class_to_index, index_to_class
+
+
+def postprocess_prediction(prediction_path, output_path, index_to_class):
+    """
+    Postprocesses the prediction by mapping indices back to original class values.
+
+    Args:
+        prediction_path (str): Path to the predicted image with indices.
+        output_path (str): Path to save the processed output image.
+        index_to_class (dict): Mapping from indices to original class values.
+
+    Returns:
+        None
+    """
+    with rasterio.open(prediction_path) as src:
+        prediction = src.read(1)  # Read the first band
+        meta = src.meta.copy()
+
+    # Replace indices with original class values
+    remapped_prediction = np.vectorize(index_to_class.get)(prediction)
+
+    # Save the remapped prediction
+    meta.update({"dtype": "uint8", "count": 1})
+    with rasterio.open(output_path, "w", **meta) as dst:
+        dst.write(remapped_prediction.astype(np.uint8), 1)
+
+    print(f"Postprocessed prediction saved to {output_path}")
+
 
 # ------------------------- Tool Definitions -------------------------
 # ------------------------- Training -------------------------
@@ -125,8 +185,8 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
     with rasterio.open(mask_path) as src:
         mask_data = src.read(1)
         #print(src.read(1))
-        #num_classes = len(np.unique(mask_data))
-        num_classes = int(mask_data.max()+1) # in order to keep the original indizes
+        num_classes = len(np.unique(mask_data))
+        #num_classes = int(mask_data.max()+1) # in order to keep the original indizes
         print(f"Number of classes: {num_classes}")
     
     with rasterio.open(image_path) as src:
@@ -240,12 +300,17 @@ in_image = combine_bands(in_files)
 in_image = "data/training_image_cropped.tif"
 in_mask = "data/2023_30m_cdls.tif"
 out_folder = "."
-batch_size = 8
+batch_size = 64
 epochs = 1
 
-num_bands, num_classes, trained_model_path = train_model(in_image, in_mask, out_folder, batch_size, epochs)
+# Preprocess the mask
+processed_mask, class_to_index, index_to_class = preprocess_mask(in_mask)
+
+num_bands, num_classes, trained_model_path = train_model(in_image, processed_mask, out_folder, batch_size, epochs)
 
 test_image = "data/test_image_cropped.tif"
 trained_model = "./trained_model.pth"
 output_prediction = "output/1_prediction_output.TIF"
 prediction(test_image, trained_model, output_prediction, num_bands, num_classes)
+postprocessed_output = "output/final_prediction.TIF"
+postprocess_prediction(output_prediction, postprocessed_output, index_to_class)
