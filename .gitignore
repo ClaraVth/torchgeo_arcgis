@@ -9,8 +9,9 @@ processed_mask.tif
 __pycache__/
 data/
 lightning_logs/
-segmentation_logs/
 output/
+segmentation_logs/
+
 
 # Exclude xml files
 *.xml
