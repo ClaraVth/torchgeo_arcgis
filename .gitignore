@@ -13,8 +13,10 @@ output/
 segmentation_logs/
 
 
-# Exclude xml files
+# Exclude automatically generated files
 *.xml
+*.cpg
+*.dbf
 
 # Exclude test file (just for me testing stuff without changing the actual script)
 test.pyt
