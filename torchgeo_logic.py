@@ -198,7 +198,7 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
         model="unet",
         backbone="resnet50",
         in_channels=num_bands,
-        num_classes=num_classes,
+        num_classes=num_classes+1,
         loss="ce",
         lr=1e-3,
     )
@@ -257,7 +257,7 @@ def prediction(image_path, model_path, output_path, num_bands, num_classes, patc
         model="unet",
         backbone="resnet50",
         in_channels=num_bands,
-        num_classes=num_classes,
+        num_classes=num_classes+1,
     )
     task.load_state_dict(torch.load(model_path))
     task.eval()  # Set the model to evaluation mode
@@ -301,7 +301,7 @@ in_image = "data/training_image_cropped.tif"
 in_mask = "data/2023_30m_cdls.tif"
 out_folder = "."
 batch_size = 64
-epochs = 1
+epochs = 10
 
 # Preprocess the mask
 processed_mask, class_to_index, index_to_class = preprocess_mask(in_mask)
