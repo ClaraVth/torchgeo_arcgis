@@ -101,6 +101,7 @@ def preprocess_mask(mask_path):
 
     # Create mappings
     unique_classes = np.unique(mask)
+    print(f"Number of classes in mask: {len(unique_classes)}")
     class_to_index = {value: idx + 1 for idx, value in enumerate(unique_classes)}  # Start index at 1
     index_to_class = {idx: value for value, idx in class_to_index.items()}
 
@@ -146,7 +147,7 @@ def postprocess_prediction(prediction_path, output_path, index_to_class):
 
 # ------------------------- Tool Definitions -------------------------
 # ------------------------- Training -------------------------
-def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_size=64):
+def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_size=256):
     """
     Args:
         image_path (str): Path to input image.
@@ -171,7 +172,7 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
     
 
     # Configure Sampler and DataLoader
-    sampler = RandomGeoSampler(dataset, size=patch_size)
+    sampler = RandomGeoSampler(dataset, size=patch_size, length=500)
     dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler, num_workers=0, collate_fn=custom_stack_samples)
     #print(f"Dataset keys: {list(dataset[0].keys())}")
     """
@@ -216,7 +217,7 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
     # Configure Logger
     logger = TensorBoardLogger(save_dir=out_folder, name="segmentation_logs")
 
-    val_sampler = RandomGeoSampler(dataset, size=patch_size)
+    val_sampler = GridGeoSampler(dataset, size=patch_size, stride=0.5*patch_size)
     val_dataloader = DataLoader(dataset, batch_size=batch_size, sampler=val_sampler, num_workers=0, collate_fn=custom_stack_samples)
 
 
@@ -272,7 +273,7 @@ def prediction(image_path, model_path, output_path, num_bands, num_classes, patc
     transforms = DropFrozenKeys()
     image_dataset = RasterDataset(paths=image_path, transforms=transforms)
 
-    sampler = GridGeoSampler(image_dataset, size=patch_size, stride=patch_size)
+    sampler = GridGeoSampler(image_dataset, size=patch_size, stride=0.5*patch_size)
     dataloader = DataLoader(image_dataset, batch_size=1, sampler=sampler, num_workers=0)
 
     # Initialize the trainer
@@ -300,17 +301,18 @@ in_image = combine_bands(in_files)
 in_image = "data/training_image_cropped.tif"
 in_mask = "data/2023_30m_cdls.tif"
 out_folder = "."
-batch_size = 64
-epochs = 10
+batch_size = 16
+epochs = 18
 
 # Preprocess the mask
 processed_mask, class_to_index, index_to_class = preprocess_mask(in_mask)
 
-num_bands, num_classes, trained_model_path = train_model(in_image, processed_mask, out_folder, batch_size, epochs)
+#num_bands, num_classes, trained_model_path = train_model(in_image, processed_mask, out_folder, batch_size, epochs)
 
 test_image = "data/test_image_cropped.tif"
 trained_model = "./trained_model.pth"
-output_prediction = "output/1_prediction_output.TIF"
-prediction(test_image, trained_model, output_prediction, num_bands, num_classes)
-postprocessed_output = "output/final_prediction.TIF"
+output_prediction = "output/18_prediction_output_patch256.TIF"
+#prediction(test_image, trained_model, output_prediction, num_bands, num_classes)
+prediction(test_image, trained_model, output_prediction, 7, 30)
+postprocessed_output = "output/18_final_prediction_patch256.TIF"
 postprocess_prediction(output_prediction, postprocessed_output, index_to_class)
