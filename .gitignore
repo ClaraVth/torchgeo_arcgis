@@ -2,7 +2,7 @@
 .DS_Store
 
 # Exclude trained model and converted mask
-trained_model.pth
+*.pth
 processed_mask.tif
 
 # Exclude specific folders
