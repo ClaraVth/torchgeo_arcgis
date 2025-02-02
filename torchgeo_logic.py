@@ -4,9 +4,11 @@ from torchgeo.samplers import RandomGeoSampler, GridGeoSampler
 from torchgeo.trainers.segmentation import SemanticSegmentationTask
 from torchgeo.datamodules import GeoDataModule
 from torchgeo.datasets import RasterDataset, stack_samples, GeoDataset
+from torchgeo.transforms import AugmentationSequential
 from lightning.pytorch import Trainer, LightningDataModule
 from lightning.pytorch.loggers import TensorBoardLogger
 from torch.utils.data import DataLoader
+from torchvision.transforms import RandomHorizontalFlip, RandomVerticalFlip, RandomRotation, RandomCrop
 from typing import Dict, Optional, Any, Iterable, Mapping
 
 import rasterio
@@ -147,7 +149,7 @@ def postprocess_prediction(prediction_path, output_path, index_to_class):
 
 # ------------------------- Tool Definitions -------------------------
 # ------------------------- Training -------------------------
-def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_size=256):
+def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_size=128):
     """
     Args:
         image_path (str): Path to input image.
@@ -159,20 +161,31 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
     """
     os.makedirs(out_folder, exist_ok=True)
 
-    transforms = DropFrozenKeys()
+    drop_frozen_keys = DropFrozenKeys()
+
+    # Data Augmentation
+    augmentation_transforms = AugmentationSequential(
+        RandomHorizontalFlip(p=0.5),
+        RandomVerticalFlip(p=0.5),
+        RandomRotation(degrees=90),
+        RandomCrop(size=(64, 64), p=1.0),  # Random crop to 128x128 patches
+        data_keys=["image", "mask"]
+    )
 
     # Initialize datasets
-    image_dataset = RasterDataset(paths=image_path, transforms=transforms)
-    mask_dataset = RasterDataset(paths=mask_path, transforms=transforms)
+    image_dataset = RasterDataset(paths=image_path, transforms=drop_frozen_keys)
+    mask_dataset = RasterDataset(paths=mask_path, transforms=drop_frozen_keys)
     mask_dataset.is_image = False
 
     # combine datasets
     dataset = image_dataset & mask_dataset
 
+    dataset.transforms = augmentation_transforms
+
     
 
     # Configure Sampler and DataLoader
-    sampler = RandomGeoSampler(dataset, size=patch_size, length=500)
+    sampler = RandomGeoSampler(dataset, size=patch_size, length=1000)
     dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler, num_workers=0, collate_fn=custom_stack_samples)
     #print(f"Dataset keys: {list(dataset[0].keys())}")
     """
@@ -273,7 +286,7 @@ def prediction(image_path, model_path, output_path, num_bands, num_classes, patc
     transforms = DropFrozenKeys()
     image_dataset = RasterDataset(paths=image_path, transforms=transforms)
 
-    sampler = GridGeoSampler(image_dataset, size=patch_size, stride=0.5*patch_size)
+    sampler = GridGeoSampler(image_dataset, size=patch_size, stride=0.25*patch_size)
     dataloader = DataLoader(image_dataset, batch_size=1, sampler=sampler, num_workers=0)
 
     # Initialize the trainer
@@ -302,17 +315,17 @@ in_image = "data/training_image_cropped.tif"
 in_mask = "data/2023_30m_cdls.tif"
 out_folder = "."
 batch_size = 16
-epochs = 18
+epochs = 10
 
 # Preprocess the mask
 processed_mask, class_to_index, index_to_class = preprocess_mask(in_mask)
 
-#num_bands, num_classes, trained_model_path = train_model(in_image, processed_mask, out_folder, batch_size, epochs)
+num_bands, num_classes, trained_model_path = train_model(in_image, processed_mask, out_folder, batch_size, epochs)
 
 test_image = "data/test_image_cropped.tif"
 trained_model = "./trained_model.pth"
-output_prediction = "output/18_prediction_output_patch256.TIF"
-#prediction(test_image, trained_model, output_prediction, num_bands, num_classes)
-prediction(test_image, trained_model, output_prediction, 7, 30)
-postprocessed_output = "output/18_final_prediction_patch256.TIF"
+output_prediction = "output/10_prediction_output_patch128_length1000.TIF"
+prediction(test_image, trained_model, output_prediction, num_bands, num_classes)
+#prediction(test_image, trained_model, output_prediction, 7, 30)
+postprocessed_output = "output/10_final_prediction_patch128_length1000.TIF"
 postprocess_prediction(output_prediction, postprocessed_output, index_to_class)
