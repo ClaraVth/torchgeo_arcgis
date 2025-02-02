@@ -88,6 +88,7 @@ def custom_stack_samples(samples: Iterable[Mapping[Any, Any]]) -> dict[Any, Any]
 def preprocess_mask(mask_path):
     """
     Preprocesses the mask to map unique class values to sequential indices.
+    Only keeps classes that represent at least 10% of the dataset.
 
     Args:
         mask_path (str): Path to the mask image.
@@ -101,11 +102,28 @@ def preprocess_mask(mask_path):
         mask = src.read(1)  # Read the first band
         meta = src.meta.copy()
 
-    # Create mappings
-    unique_classes = np.unique(mask)
-    print(f"Number of classes in mask: {len(unique_classes)}")
-    class_to_index = {value: idx + 1 for idx, value in enumerate(unique_classes)}  # Start index at 1
-    index_to_class = {idx: value for value, idx in class_to_index.items()}
+    # Calculate the percentage of each class
+    unique, counts = np.unique(mask, return_counts=True)
+    total_pixels = mask.size
+    class_percentages = {cls: count / total_pixels for cls, count in zip(unique, counts)}
+
+    # Filter classes with at least 10% of the dataset
+    filtered_classes = {cls for cls, percentage in class_percentages.items() if percentage >= 0.01}
+    print(f"Classes with >= 10% of the data: {filtered_classes}")
+
+    # Create mappings for filtered classes
+    class_to_index = {}
+    current_index = 1
+
+    for cls in unique:
+        if cls in filtered_classes:
+            class_to_index[cls] = current_index
+            current_index += 1
+        else:
+            class_to_index[cls] = 0  # Assign all other classes to 0
+
+    index_to_class = {idx: cls for cls, idx in class_to_index.items() if idx != 0}
+    index_to_class[0] = 0
 
     # Replace class values with indices
     indexed_mask = np.vectorize(class_to_index.get)(mask)
@@ -168,7 +186,7 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
         RandomHorizontalFlip(p=0.5),
         RandomVerticalFlip(p=0.5),
         RandomRotation(degrees=90),
-        RandomCrop(size=(64, 64), p=1.0),  # Random crop to 128x128 patches
+        #RandomCrop(size=(64, 64)),
         data_keys=["image", "mask"]
     )
 
@@ -315,7 +333,7 @@ in_image = "data/training_image_cropped.tif"
 in_mask = "data/2023_30m_cdls.tif"
 out_folder = "."
 batch_size = 16
-epochs = 10
+epochs = 15
 
 # Preprocess the mask
 processed_mask, class_to_index, index_to_class = preprocess_mask(in_mask)
@@ -324,8 +342,8 @@ num_bands, num_classes, trained_model_path = train_model(in_image, processed_mas
 
 test_image = "data/test_image_cropped.tif"
 trained_model = "./trained_model.pth"
-output_prediction = "output/10_prediction_output_patch128_length1000.TIF"
+output_prediction = "output/15_prediction_output_patch128_length1000_1per.TIF"
 prediction(test_image, trained_model, output_prediction, num_bands, num_classes)
 #prediction(test_image, trained_model, output_prediction, 7, 30)
-postprocessed_output = "output/10_final_prediction_patch128_length1000.TIF"
+postprocessed_output = "output/15_final_prediction_patch128_length1000_1per.TIF"
 postprocess_prediction(output_prediction, postprocessed_output, index_to_class)
