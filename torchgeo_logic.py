@@ -328,20 +328,20 @@ def prediction(image_path, model_path, output_path, num_bands, num_classes, patc
 in_files = ["data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B1.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B2.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B3.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B4.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B5.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B6.TIF", "data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B7.TIF"]
 in_image = combine_bands(in_files)
 """
-in_image = "data/training_image_cropped.tif"
-in_mask = "data/2023_30m_cdls.tif"
+training_image = "data/medium_size/training_image.tif"
+in_mask = "data/medium_size/mask.tif"
 out_folder = "."
-batch_size = 16
+batch_size = 32
 epochs = 20
 
 # Preprocess the mask
 processed_mask, class_to_index, index_to_class = preprocess_mask(in_mask)
 
-num_bands, num_classes, trained_model_path = train_model(in_image, processed_mask, out_folder, batch_size, epochs)
+num_bands, num_classes, trained_model_path = train_model(training_image, processed_mask, out_folder, batch_size, epochs)
 
-test_image = "data/test_image_cropped.tif"
+test_image = "data/medium_size/test_image.tif"
 trained_model = "./trained_model.pth"
-output_prediction = "output/1_prediction_output_patch128_length1000_1per.TIF"
+output_prediction = "output/20_prediction_output_patch128_length1000_1per.TIF"
 prediction(test_image, trained_model, output_prediction, num_bands, num_classes)
-postprocessed_output = "output/1_final_prediction_patch128_length1000_1per.TIF"
+postprocessed_output = "output/20_final_prediction_patch128_length1000_1per.TIF"
 postprocess_prediction(output_prediction, postprocessed_output, index_to_class)
