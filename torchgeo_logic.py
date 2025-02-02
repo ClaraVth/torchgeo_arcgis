@@ -109,7 +109,7 @@ def preprocess_mask(mask_path):
 
     # Filter classes with at least 10% of the dataset
     filtered_classes = {cls for cls, percentage in class_percentages.items() if percentage >= 0.01}
-    print(f"Classes with >= 10% of the data: {filtered_classes}")
+    print(f"Classes with >= 1% of the data: {filtered_classes}")
 
     # Create mappings for filtered classes
     class_to_index = {}
@@ -218,7 +218,6 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
         mask_data = src.read(1)
         #print(src.read(1))
         num_classes = len(np.unique(mask_data))
-        #num_classes = int(mask_data.max()+1) # in order to keep the original indizes
         print(f"Number of classes: {num_classes}")
     
     with rasterio.open(image_path) as src:
@@ -230,7 +229,7 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
         model="unet",
         backbone="resnet50",
         in_channels=num_bands,
-        num_classes=num_classes+1,
+        num_classes=num_classes,
         loss="ce",
         lr=1e-3,
     )
@@ -271,7 +270,7 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, patch_siz
 
 # ------------------------- Segmentation -------------------------
 
-def prediction(image_path, model_path, output_path, num_bands, num_classes, patch_size=64):
+def prediction(image_path, model_path, output_path, num_bands, num_classes, patch_size=128):
     """
     Applies a trained model to new data for prediction using Trainer.predict.
 
@@ -289,7 +288,7 @@ def prediction(image_path, model_path, output_path, num_bands, num_classes, patc
         model="unet",
         backbone="resnet50",
         in_channels=num_bands,
-        num_classes=num_classes+1,
+        num_classes=num_classes,
     )
     task.load_state_dict(torch.load(model_path))
     task.eval()  # Set the model to evaluation mode
@@ -333,7 +332,7 @@ in_image = "data/training_image_cropped.tif"
 in_mask = "data/2023_30m_cdls.tif"
 out_folder = "."
 batch_size = 16
-epochs = 15
+epochs = 20
 
 # Preprocess the mask
 processed_mask, class_to_index, index_to_class = preprocess_mask(in_mask)
@@ -342,8 +341,7 @@ num_bands, num_classes, trained_model_path = train_model(in_image, processed_mas
 
 test_image = "data/test_image_cropped.tif"
 trained_model = "./trained_model.pth"
-output_prediction = "output/15_prediction_output_patch128_length1000_1per.TIF"
+output_prediction = "output/1_prediction_output_patch128_length1000_1per.TIF"
 prediction(test_image, trained_model, output_prediction, num_bands, num_classes)
-#prediction(test_image, trained_model, output_prediction, 7, 30)
-postprocessed_output = "output/15_final_prediction_patch128_length1000_1per.TIF"
+postprocessed_output = "output/1_final_prediction_patch128_length1000_1per.TIF"
 postprocess_prediction(output_prediction, postprocessed_output, index_to_class)
