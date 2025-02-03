@@ -340,8 +340,8 @@ in_image = combine_bands(in_files)
 if __name__ == "__main__":
     mp.set_start_method("spawn", force=True)  # Wichtig für MacOS!
 
-    training_image = "data/medium_size/training_image.tif"
-    in_mask = "data/medium_size/mask.tif"
+    training_image = "medium_size/training_image.tif"
+    in_mask = "medium_size/mask.tif"
     out_folder = "."
     batch_size = 64
     epochs = 20
@@ -352,7 +352,7 @@ if __name__ == "__main__":
 
     num_bands, num_classes, trained_model_path = train_model(training_image, processed_mask, out_folder, batch_size, epochs, num_workers)
 
-    test_image = "data/medium_size/test_image.tif"
+    test_image = "medium_size/test_image.tif"
     trained_model = "./trained_model.pth"
     output_prediction = "output/prediction_output_raw.TIF"
     
