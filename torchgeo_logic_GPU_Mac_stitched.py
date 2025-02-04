@@ -301,7 +301,7 @@ def prediction(image_path, model_path, output_path, num_bands, num_classes, patc
             patch = image_tensor[:, :, row:row_end, col:col_end]
             # Skip incomplete patches
             if patch.shape[2] < patch_size or patch.shape[3] < patch_size:
-                continue  # Überspringe unvollständige Patches
+                continue
             
             pred = task(patch).argmax(dim=1).squeeze().byte().numpy()
             prediction_map[row:row_end, col:col_end] = pred[:row_end - row, :col_end - col]
