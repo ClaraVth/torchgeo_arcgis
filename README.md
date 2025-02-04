@@ -25,7 +25,7 @@ In ArcGIS Pro:
 ## Current status
 The .pyt file has been created and works in the environment of ArcGIS Pro. After the first run, it seems to retain some memory, which eventually causes the program to crash. Therefore, I have isolated the code for semantic segmentation into the torchgeo_logic.py file. So far, I can run the script successfully and obtain an output GeoTIFF file with the segmentation. It recognizes the dominant classes and can assign them to the correct areas. However, smaller classes are suppressed and the shape of the fields is strongly generalized.\\
 
-In order to use the GPU on my MacBook, I created a new file [torchgeo_logic_GPU_Mac_stitched.py]() which runs much faster than the original file using the CPU. To implement that into the .pyt file keeps to be solved with a Windows PC.
+In order to use the GPU on my MacBook, I created a new file [torchgeo_logic_GPU_Mac_stitched.py](https://github.com/ClaraVth/torchgeo_arcgis/blob/main/torchgeo_logic_GPU_Mac_stitched.py) which runs much faster than the original file using the CPU. To implement that into the .pyt file keeps to be solved with a Windows PC.
 
 ## Example Usage
 I downloaded the Landsat 7, Landsat 8, and CDL datasets for testing from [here](https://huggingface.co/datasets/torchgeo/tutorials/tree/main).\
