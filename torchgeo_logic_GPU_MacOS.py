@@ -338,7 +338,7 @@ in_files = ["data/LC08_L2SP_023032_20230831_20230911_02_T1_SR_B1.TIF", "data/LC0
 in_image = combine_bands(in_files)
 """
 if __name__ == "__main__":
-    mp.set_start_method("spawn", force=True)  # Wichtig für MacOS!
+    mp.set_start_method("spawn", force=True)  # Important for MacOS!
 
     training_image = "medium_size/training_image.tif"
     in_mask = "medium_size/mask.tif"
@@ -354,9 +354,9 @@ if __name__ == "__main__":
 
     test_image = "medium_size/test_image.tif"
     trained_model = "./trained_model.pth"
-    output_prediction = "output/prediction_output_raw.TIF"
+    output_prediction = "output/prediction_output_raw.tif"
     
     prediction(test_image, trained_model, output_prediction, num_bands, num_classes, num_workers)
 
-    postprocessed_output = "output/20_final_prediction_patch128_length10000_1per_pretrained.TIF"
+    postprocessed_output = "output/20_final_prediction_patch128_length10000_1per_pretrained.tif"
     postprocess_prediction(output_prediction, postprocessed_output, index_to_class)
