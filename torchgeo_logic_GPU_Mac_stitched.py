@@ -311,7 +311,7 @@ def prediction(image_path, model_path, output_path, num_bands, num_classes, patc
                        crs=crs, transform=transform) as dst:
         dst.write(prediction_map, 1)
 
-    print(f"Vorhersage gespeichert: {output_path}")
+    print(f"Saved prediction: {output_path}")
 
 
 # ------------------------- Run -------------------------
