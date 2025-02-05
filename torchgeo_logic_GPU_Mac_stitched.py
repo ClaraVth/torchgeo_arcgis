@@ -275,7 +275,7 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, num_worke
 # ------------------------- Segmentation -------------------------
 
 def prediction(image_path, model_path, output_path, num_bands, num_classes, patch_size=64, stride=32):
-    """Funktion zur Anwendung des trainierten Modells auf neue Daten."""
+    """Apply the trained model on new data."""
     # Load model
     task = SemanticSegmentationTask(model="unet", backbone="resnet50", in_channels=num_bands, num_classes=num_classes)
     task.load_state_dict(torch.load(model_path))
@@ -341,14 +341,14 @@ if __name__ == "__main__":
     # Preprocess the mask
     processed_mask, class_to_index, index_to_class = preprocess_mask(in_mask)
 
-    num_bands, num_classes, trained_model_path = train_model(training_image, processed_mask, out_folder, batch_size, epochs, num_workers)
+    #num_bands, num_classes, trained_model_path = train_model(training_image, processed_mask, out_folder, batch_size, epochs, num_workers)
 
     test_image = "data/medium_size/test_image.tif"
     trained_model = "./trained_model.pth"
     output_prediction = "output/prediction_output_raw.TIF"
     
-    prediction(test_image, trained_model, output_prediction, num_bands, num_classes, num_workers)
-    #prediction(test_image, trained_model, output_prediction, 7, 7)
+    #prediction(test_image, trained_model, output_prediction, num_bands, num_classes, num_workers)
+    prediction(test_image, trained_model, output_prediction, 7, 7)
 
     postprocessed_output = "output/30_final_prediction_patch64_length10000_1per_pretrained.TIF"
     #postprocessed_output = "output/test.TIF"

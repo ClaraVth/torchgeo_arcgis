@@ -143,7 +143,7 @@ class TrainLandUseModel:
             parameterType="Required",
             direction="Input",
         )
-        param3.value = 10
+        param3.value = 15
 
         param4 = arcpy.Parameter(
             displayName="Test Image Layer",
