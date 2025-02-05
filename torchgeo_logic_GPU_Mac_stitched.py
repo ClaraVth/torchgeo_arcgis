@@ -1,6 +1,8 @@
 import torch
 from torch import Tensor
 import torch.multiprocessing as mp
+import torch.nn.functional as F
+from torch.utils.data import DataLoader
 from torchgeo.samplers import RandomGeoSampler, GridGeoSampler
 from torchgeo.trainers.segmentation import SemanticSegmentationTask
 from torchgeo.datamodules import GeoDataModule
@@ -9,7 +11,6 @@ from torchgeo.transforms import AugmentationSequential
 from torchgeo.models import ResNet50_Weights
 from lightning.pytorch import Trainer, LightningDataModule
 from lightning.pytorch.loggers import TensorBoardLogger
-from torch.utils.data import DataLoader
 from torchvision.transforms import RandomHorizontalFlip, RandomVerticalFlip, RandomRotation, RandomCrop
 from typing import Dict, Optional, Any, Iterable, Mapping
 from multiprocessing import Lock
@@ -177,7 +178,7 @@ def postprocess_prediction(prediction_path, output_path, index_to_class):
 
 # ------------------------- Tool Definitions -------------------------
 # ------------------------- Training -------------------------
-def train_model(image_path, mask_path, out_folder, batch_size, epochs, num_workers, patch_size=128):
+def train_model(image_path, mask_path, out_folder, batch_size, epochs, num_workers, patch_size=64):
     """
     Args:
         image_path (str): Path to input image.
@@ -299,9 +300,17 @@ def prediction(image_path, model_path, output_path, num_bands, num_classes, patc
             col_end = min(col + patch_size, width)
             
             patch = image_tensor[:, :, row:row_end, col:col_end]
-            # Skip incomplete patches
-            if patch.shape[2] < patch_size or patch.shape[3] < patch_size:
+
+            pad_h = patch_size - patch.shape[2]
+            pad_w = patch_size - patch.shape[3]
+            #print(pad_h, pad_w)
+            # Skip empty patches
+            if patch.shape[2] == 0 or patch.shape[3] == 0 or pad_h > patch_size/2 or pad_w > patch_size/2:
                 continue
+            # Process incomplete patches
+            elif pad_h > 0 or pad_w > 0:
+                padding = (0, max(0, pad_w), 0, max(0, pad_h))
+                patch = F.pad(patch, padding, mode='reflect')
             
             pred = task(patch).argmax(dim=1).squeeze().byte().numpy()
             prediction_map[row:row_end, col:col_end] = pred[:row_end - row, :col_end - col]
@@ -326,20 +335,21 @@ if __name__ == "__main__":
     in_mask = "data/medium_size/mask.tif"
     out_folder = "."
     batch_size = 64
-    epochs = 10
+    epochs = 30
     num_workers = 8
 
     # Preprocess the mask
     processed_mask, class_to_index, index_to_class = preprocess_mask(in_mask)
 
-    #num_bands, num_classes, trained_model_path = train_model(training_image, processed_mask, out_folder, batch_size, epochs, num_workers)
+    num_bands, num_classes, trained_model_path = train_model(training_image, processed_mask, out_folder, batch_size, epochs, num_workers)
 
     test_image = "data/medium_size/test_image.tif"
     trained_model = "./trained_model.pth"
     output_prediction = "output/prediction_output_raw.TIF"
     
-    #prediction(test_image, trained_model, output_prediction, num_bands, num_classes, num_workers)
-    prediction(test_image, trained_model, output_prediction, 7, 7)
+    prediction(test_image, trained_model, output_prediction, num_bands, num_classes, num_workers)
+    #prediction(test_image, trained_model, output_prediction, 7, 7)
 
-    postprocessed_output = "output/20_final_prediction_patch64_length10000_1per_pretrained.TIF"
+    postprocessed_output = "output/30_final_prediction_patch64_length10000_1per_pretrained.TIF"
+    #postprocessed_output = "output/test.TIF"
     postprocess_prediction(output_prediction, postprocessed_output, index_to_class)
