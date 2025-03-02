@@ -10,6 +10,7 @@ The aim of this project is to implement TorchGeo in ArcGIS Pro in the form of a 
 Another challenge is the usage of the right operating system. Since I have a MacBook, but ArcGIS does not work on MacOS, I have to use a virtual machine. However, there I cannot access the GPU directly. To be able to use the efficiency of the GPU , I have created a separate file [torchgeo_logic_GPU_MacOS.py](https://github.com/ClaraVth/torchgeo_arcgis/blob/main/torchgeo_logic_GPU_MacOS.py) which runs much faster than the original file using the CPU. That simplifies the finetuning task. To implement that into the .pyt file remains to be solved with a Windows PC.
 
 Next steps:
+- Replace the prints by logging
 - Integrate the usage of a GPU into the .pyt script
 - Give the user more options:
   - Select the DL-model (current default: U-Net with ResNet50 backbone)
