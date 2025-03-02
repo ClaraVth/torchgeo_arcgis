@@ -2,7 +2,7 @@
 
 ## Project Description
 
-The aim of this project is to implement TorchGeo in ArcGIS Pro in the form of a toolbox. The first targeted application is Semantic Segmentation for land cover mapping. The Trainer for this task already existed and worked. However, the subsequent segmentation with the trained model and the correct assembly of the individual patches still had to be solved.
+The aim of this project is to implement TorchGeo in ArcGIS Pro in the form of a toolbox. The first targeted application is Semantic Segmentation for Land Cover Mapping. The Trainer for this task already existed and worked. However, the subsequent segmentation with the trained model and the correct assembly of the individual patches still had to be solved.
 
 ## Current status
 The .pyt file has been created and works in the environment of ArcGIS Pro. After the first run, it seems to retain some memory, which eventually causes the program to crash. Therefore, I have isolated the code for semantic segmentation into the torchgeo_logic.py file. So far, I can run the script successfully and obtain an output GeoTIFF file with the segmentation. It recognizes the dominant classes and can assign them to the correct areas. However, smaller classes are suppressed and the shape of the fields is strongly generalized.
