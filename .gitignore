@@ -21,3 +21,4 @@ medium_size/
 # Exclude test file (just for me testing stuff without changing the actual script)
 test.pyt
 torchgeo_logic_GPU_MacOS.py
+torchgeo_arcgis_old.pyt
