@@ -20,4 +20,4 @@ medium_size/
 
 # Exclude test file (just for me testing stuff without changing the actual script)
 test.pyt
-torchgeo_logic_GPR_MacOS
+torchgeo_logic_GPR_MacOS.py
