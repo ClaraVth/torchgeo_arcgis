@@ -217,7 +217,7 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, num_worke
 
     # Configure Sampler and DataLoader
     sampler = RandomGeoSampler(dataset, size=patch_size, length=10000)
-    dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler, num_workers=num_workers, collate_fn=custom_stack_samples, pin_memory=True, persistent_workers=True)
+    dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler, num_workers=num_workers, collate_fn=custom_stack_samples, pin_memory=torch.backends.mps.is_available(), persistent_workers=True)
     #print(f"Dataset keys: {list(dataset[0].keys())}")
     """
     for batch in dataloader:
@@ -252,7 +252,7 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, num_worke
     logger = TensorBoardLogger(save_dir=out_folder, name="segmentation_logs")
 
     val_sampler = GridGeoSampler(dataset, size=patch_size, stride=0.5*patch_size)
-    val_dataloader = DataLoader(dataset, batch_size=batch_size, sampler=val_sampler, num_workers=num_workers, collate_fn=custom_stack_samples, pin_memory=True, persistent_workers=True)
+    val_dataloader = DataLoader(dataset, batch_size=batch_size, sampler=val_sampler, num_workers=num_workers, collate_fn=custom_stack_samples, pin_memory=torch.backends.mps.is_available(), persistent_workers=True)
 
 
     # Configure Trainer 

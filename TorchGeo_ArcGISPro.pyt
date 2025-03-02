@@ -98,7 +98,7 @@ def custom_stack_samples(samples: Iterable[Mapping[Any, Any]]) -> dict[Any, Any]
 
     return collated
 
-def preprocess_mask(mask_path):
+def preprocess_mask(mask_path, out_folder):
     """
     Preprocesses the mask to map unique class values to sequential indices.
     Only keeps classes that represent at least 1% of the dataset.
@@ -142,13 +142,13 @@ def preprocess_mask(mask_path):
     indexed_mask = np.vectorize(class_to_index.get)(mask)
 
     # Save the processed mask
-    processed_mask_path = "processed_mask.tif"
+    processed_mask_path = os.path.join(out_folder, "processed_mask.tif")
     meta.update({"dtype": "uint8", "count": 1})
     with rasterio.open(processed_mask_path, "w", **meta) as dst:
         dst.write(indexed_mask.astype(np.uint8), 1)
 
     print(f"Processed mask saved to {processed_mask_path}")
-    return processed_mask_path, class_to_index, index_to_class
+    return processed_mask_path, index_to_class
 
 
 def postprocess_prediction(prediction_path, output_path, index_to_class):
@@ -179,7 +179,7 @@ def postprocess_prediction(prediction_path, output_path, index_to_class):
 
 # ------------------------- Tool Definitions -------------------------
 # ------------------------- Training -------------------------
-def train_model(image_path, mask_path, out_folder, batch_size, epochs, num_workers, patch_size=64):
+def train_model(image_path, mask_path, out_folder, batch_size, epochs, num_workers, patch_size):
     """
     Args:
         image_path (str): Path to input image.
@@ -218,7 +218,15 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, num_worke
 
     # Configure Sampler and DataLoader
     sampler = RandomGeoSampler(dataset, size=patch_size, length=10000)
-    dataloader = DataLoader(dataset, batch_size=batch_size, sampler=sampler, num_workers=num_workers, collate_fn=custom_stack_samples, pin_memory=True, persistent_workers=True)
+    dataloader = DataLoader(
+        dataset,
+        batch_size=batch_size,
+        sampler=sampler,
+        num_workers=num_workers,
+        collate_fn=custom_stack_samples,
+        pin_memory=torch.backends.mps.is_available(),
+        persistent_workers=True
+    )
     #print(f"Dataset keys: {list(dataset[0].keys())}")
     """
     for batch in dataloader:
@@ -253,7 +261,15 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, num_worke
     logger = TensorBoardLogger(save_dir=out_folder, name="segmentation_logs")
 
     val_sampler = GridGeoSampler(dataset, size=patch_size, stride=0.5*patch_size)
-    val_dataloader = DataLoader(dataset, batch_size=batch_size, sampler=val_sampler, num_workers=num_workers, collate_fn=custom_stack_samples, pin_memory=True, persistent_workers=True)
+    val_dataloader = DataLoader(
+        dataset,
+        batch_size=batch_size,
+        sampler=val_sampler,
+        num_workers=num_workers,
+        collate_fn=custom_stack_samples,
+        pin_memory=torch.backends.mps.is_available(),
+        persistent_workers=True
+    )
 
 
     # Configure Trainer 
@@ -275,10 +291,18 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, num_worke
 
 # ------------------------- Segmentation -------------------------
 
-def prediction(image_path, model_path, output_path, num_bands, num_classes, patch_size=64, stride=32):
+def prediction(image_path, model_path, output_path, num_bands, num_classes, patch_size, stride=32):
     """Apply the trained model on new data."""
     # Load model
-    task = SemanticSegmentationTask(model="unet", backbone="resnet50", in_channels=num_bands, num_classes=num_classes)
+    task = SemanticSegmentationTask(
+        model="unet",
+        backbone="resnet50",
+        in_channels=num_bands,
+        num_classes=num_classes,
+    )
+
+    if torch.backends.mps.is_available():
+        task.to('mps')
     task.load_state_dict(torch.load(model_path))
     task.eval()
 
@@ -304,7 +328,6 @@ def prediction(image_path, model_path, output_path, num_bands, num_classes, patc
 
             pad_h = patch_size - patch.shape[2]
             pad_w = patch_size - patch.shape[3]
-            #print(pad_h, pad_w)
             # Skip empty patches
             if patch.shape[2] == 0 or patch.shape[3] == 0 or pad_h > patch_size/2 or pad_w > patch_size/2:
                 continue
@@ -395,10 +418,7 @@ class TrainLandUseModel:
         return [param0, param01, param1, param2, param3, param4]
 
     def execute(self, parameters, messages):
-        """Main execution logic of the tool."""
-        gc.collect()
-        torch.cuda.empty_cache()
-        
+        """Main execution logic of the tool."""        
         #image_layers = parameters[0].values  # List of input raster layers
         image_layers = parameters[0].value  # For only 1 possible input
         mask_layer = parameters[1].value
@@ -412,14 +432,14 @@ class TrainLandUseModel:
         # ------------------------- Run -------------------------
         in_image = arcpy.Describe(image_layers).catalogPath
         in_mask = arcpy.Describe(mask_layer).catalogPath
-        processed_mask, class_to_index, index_to_class = preprocess_mask(in_mask)
-        num_bands, num_classes = train_model(in_image, processed_mask, out_folder, batch_size, epochs, num_workers)
+        processed_mask, index_to_class = preprocess_mask(in_mask, out_folder)
+        num_bands, num_classes = train_model(in_image, processed_mask, out_folder, batch_size, epochs, num_workers, patch_size)
 
         test_image = arcpy.Describe(test_image).catalogPath
         trained_model = os.path.join(out_folder, "trained_model.pth")
         output_prediction = os.path.join(out_folder, "prediction_output_raw.TIF")
     
-        prediction(test_image, trained_model, output_prediction, num_bands, num_classes)
+        prediction(test_image, trained_model, output_prediction, num_bands, num_classes, patch_size)
 
         postprocessed_output = os.path.join(out_folder, "prediction.TIF")
         postprocess_prediction(output_prediction, postprocessed_output, index_to_class)
