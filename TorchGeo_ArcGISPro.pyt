@@ -2,31 +2,24 @@
 
 import arcpy
 import os
-import glob
 import torch
 import rasterio
 import numpy as np
-import gc
 from torch import Tensor
-import torch.multiprocessing as mp
 import torch.nn.functional as F
 from torch.utils.data import DataLoader
-from torchvision.transforms import RandomHorizontalFlip, RandomVerticalFlip, RandomRotation, RandomCrop
-from torchgeo.datasets import RasterDataset, VectorDataset, stack_samples
+from torchvision.transforms import RandomHorizontalFlip, RandomVerticalFlip, RandomRotation
+from torchgeo.datasets import RasterDataset
 from torchgeo.samplers import GridGeoSampler, RandomGeoSampler
 from torchgeo.trainers.segmentation import SemanticSegmentationTask
-from torchgeo.datamodules import GeoDataModule
-from torchgeo.datasets import RasterDataset, stack_samples, GeoDataset
+from torchgeo.datasets import RasterDataset
 from torchgeo.transforms import AugmentationSequential
 from torchgeo.models import ResNet50_Weights
-from lightning.pytorch import Trainer, LightningDataModule
+from lightning.pytorch import Trainer
 from lightning.pytorch.loggers import TensorBoardLogger
-from typing import Dict, Optional, Any, Iterable, Mapping
+from typing import Any, Iterable, Mapping
 
-from multiprocessing import Lock
 from tqdm import tqdm
-import kornia
-from kornia.geometry.transform import warp_affine
 from tqdm import tqdm
 
 # ------------------------- Helper functions -------------------------
