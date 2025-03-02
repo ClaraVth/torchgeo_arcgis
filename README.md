@@ -12,7 +12,7 @@ Another challenge is the usage of the right operating system. Since I have a Mac
 Next steps:
 - Integrate the usage of a GPU into the .pyt script
 - Give the user more options:
-  - Select the DL-model
+  - Select the DL-model (current default: U-Net with ResNet50 backbone)
   - Allow multiple input images and masks
   - Allow to use a pretrained model
   - Add more Trainers like Instance Segmentation or Classification
