@@ -9,6 +9,8 @@ The .pyt file has been created and works in the environment of ArcGIS Pro. After
 
 Another challenge is the usage of the right operating system. Since I have a MacBook, but ArcGIS does not work on MacOS, I have to use a virtual machine. However, there I cannot access the GPU directly. To be able to use the efficiency of the GPU , I have created a separate file [torchgeo_logic_GPU_Mac_stitched.py](https://github.com/ClaraVth/torchgeo_arcgis/blob/main/torchgeo_logic_GPU_Mac_stitched.py) which runs much faster than the original file using the CPU. To implement that into the .pyt file remains to be solved with a Windows PC.
 
+I am currently working on the integration of the predicted patch stitching into prediction function of the .pyt file.
+
 Next steps:
 - Integrate the usage of a GPU into the .pyt script
 - Give the user more options:
