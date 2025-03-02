@@ -1,14 +1,24 @@
-# torchgeo_arcgis
-Implementation of TorchGeo into ArcGIS Pro
+# TorchGeo in ArcGIS Pro
 
 ## Project Description
 
-The aim of this project is to implement TorchGeo in ArcGIS Pro in the form of a toolbox. The first targeted application is Semantic Segmentation for land cover mapping. 
+The aim of this project is to implement TorchGeo in ArcGIS Pro in the form of a toolbox. The first targeted application is Semantic Segmentation for land cover mapping. The Trainer for this task already existed and worked. However, the subsequent segmentation with the trained model and the correct assembly of the individual patches still had to be solved.
 
 ## Current status
 The .pyt file has been created and works in the environment of ArcGIS Pro. After the first run, it seems to retain some memory, which eventually causes the program to crash. Therefore, I have isolated the code for semantic segmentation into the torchgeo_logic.py file. So far, I can run the script successfully and obtain an output GeoTIFF file with the segmentation. It recognizes the dominant classes and can assign them to the correct areas. However, smaller classes are suppressed and the shape of the fields is strongly generalized.
 
-Another challenge is the operating system used. Since I use a MacBook, but ArcGIS does not work on MacOS, I have to use a virtual machine. However, this cannot access the GPU directly. To be able to use the efficiency of the GPU anyway, I have created a separate file [torchgeo_logic_GPU_Mac_stitched.py](https://github.com/ClaraVth/torchgeo_arcgis/blob/main/torchgeo_logic_GPU_Mac_stitched.py) which runs much faster than the original file using the CPU. To implement that into the .pyt file remains to be solved with a Windows PC.
+Another challenge is the usage of the right operating system. Since I have a MacBook, but ArcGIS does not work on MacOS, I have to use a virtual machine. However, there I cannot access the GPU directly. To be able to use the efficiency of the GPU , I have created a separate file [torchgeo_logic_GPU_Mac_stitched.py](https://github.com/ClaraVth/torchgeo_arcgis/blob/main/torchgeo_logic_GPU_Mac_stitched.py) which runs much faster than the original file using the CPU. To implement that into the .pyt file remains to be solved with a Windows PC.
+
+Next steps:
+- Integrate the usage of a GPU into the .pyt script
+- Give the user more options:
+  - Select the DL-model
+  - Allow multiple input images and masks
+  - Allow to use a pretrained model
+  - Add more Trainers like Instance Segmentation or Classification
+- Implement details for a better user experience:
+  - Automatic Symbolization of the result with the classes from the mask layer
+  - Detailed progress bar
 
 ## Application
 ### Set up the environment
