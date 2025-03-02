@@ -189,7 +189,6 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, num_worke
         epochs (int): Number of Training epochs.
         patch_size (int): Path size for the model.
     """
-    os.makedirs(out_folder, exist_ok=True)
 
     drop_frozen_keys = DropFrozenKeys()
 
@@ -225,7 +224,7 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, num_worke
         num_workers=num_workers,
         collate_fn=custom_stack_samples,
         pin_memory=torch.backends.mps.is_available(),
-        persistent_workers=True
+        persistent_workers=True if num_workers > 0 else False
     )
     #print(f"Dataset keys: {list(dataset[0].keys())}")
     """
@@ -268,7 +267,7 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, num_worke
         num_workers=num_workers,
         collate_fn=custom_stack_samples,
         pin_memory=torch.backends.mps.is_available(),
-        persistent_workers=True
+        persistent_workers=True if num_workers > 0 else False
     )
 
 
@@ -427,11 +426,12 @@ class TrainLandUseModel:
         epochs = parameters[4].value
         test_image = parameters[5].value
         patch_size = 64
-        num_workers = 8
+        num_workers = 0
 
         # ------------------------- Run -------------------------
         in_image = arcpy.Describe(image_layers).catalogPath
         in_mask = arcpy.Describe(mask_layer).catalogPath
+        os.makedirs(out_folder, exist_ok=True)
         processed_mask, index_to_class = preprocess_mask(in_mask, out_folder)
         num_bands, num_classes = train_model(in_image, processed_mask, out_folder, batch_size, epochs, num_workers, patch_size)
 
