@@ -11,7 +11,7 @@ data/
 lightning_logs/
 output/
 segmentation_logs/
-
+medium_size/
 
 # Exclude automatically generated files
 *.xml
@@ -20,3 +20,4 @@ segmentation_logs/
 
 # Exclude test file (just for me testing stuff without changing the actual script)
 test.pyt
+torchgeo_logic_GPR_MacOS
