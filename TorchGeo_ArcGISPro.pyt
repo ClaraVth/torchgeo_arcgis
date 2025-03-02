@@ -32,8 +32,8 @@ from tqdm import tqdm
 # ------------------------- Helper functions -------------------------
 class DropFrozenKeys:
     def __call__(self, sample):
-        sample.pop('crs')
-        sample.pop('bounds')
+        sample.pop('crs', None)
+        sample.pop('bounds', None)
         return sample
     
 def combine_bands(in_files):
@@ -224,7 +224,7 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, num_worke
         num_workers=num_workers,
         collate_fn=custom_stack_samples,
         pin_memory=torch.backends.mps.is_available(),
-        persistent_workers=True if num_workers > 0 else False
+        persistent_workers=num_workers > 0
     )
     #print(f"Dataset keys: {list(dataset[0].keys())}")
     """
@@ -267,7 +267,7 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, num_worke
         num_workers=num_workers,
         collate_fn=custom_stack_samples,
         pin_memory=torch.backends.mps.is_available(),
-        persistent_workers=True if num_workers > 0 else False
+        persistent_workers=num_workers > 0
     )
 
 
@@ -293,16 +293,16 @@ def train_model(image_path, mask_path, out_folder, batch_size, epochs, num_worke
 def prediction(image_path, model_path, output_path, num_bands, num_classes, patch_size, stride=32):
     """Apply the trained model on new data."""
     # Load model
+    device = "mps" if torch.backends.mps.is_available() else "cpu"
+    
     task = SemanticSegmentationTask(
         model="unet",
         backbone="resnet50",
         in_channels=num_bands,
         num_classes=num_classes,
-    )
+    ).to(device)
 
-    if torch.backends.mps.is_available():
-        task.to('mps')
-    task.load_state_dict(torch.load(model_path))
+    task.load_state_dict(torch.load(model_path, map_location=device))
     task.eval()
 
     # Load image
