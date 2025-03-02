@@ -1,7 +1,17 @@
 # torchgeo_arcgis
 Implementation of TorchGeo into ArcGIS Pro
 
-## Set up the environment
+## Project Description
+
+The aim of this project is to implement TorchGeo in ArcGIS Pro in the form of a toolbox. The first targeted application is Semantic Segmentation for land cover mapping. 
+
+## Current status
+The .pyt file has been created and works in the environment of ArcGIS Pro. After the first run, it seems to retain some memory, which eventually causes the program to crash. Therefore, I have isolated the code for semantic segmentation into the torchgeo_logic.py file. So far, I can run the script successfully and obtain an output GeoTIFF file with the segmentation. It recognizes the dominant classes and can assign them to the correct areas. However, smaller classes are suppressed and the shape of the fields is strongly generalized.
+
+Another challenge is the operating system used. Since I use a MacBook, but ArcGIS does not work on MacOS, I have to use a virtual machine. However, this cannot access the GPU directly. To be able to use the efficiency of the GPU anyway, I have created a separate file [torchgeo_logic_GPU_Mac_stitched.py](https://github.com/ClaraVth/torchgeo_arcgis/blob/main/torchgeo_logic_GPU_Mac_stitched.py) which runs much faster than the original file using the CPU. To implement that into the .pyt file remains to be solved with a Windows PC.
+
+## Application
+### Set up the environment
 ArcGIS Pro needs to be installed. It does not work on macOS! I use version 3.4
 
 Create a virtual environment with Python 3.11 and install the following packages:
@@ -22,12 +32,8 @@ In ArcGIS Pro:
 - Add the .pyt script to the ArcGIS Pro Project Folder
 - Add Toolbox: Content Pane > Right-click on Toolboxes > Add Toolbox (Navigate to location on PC)
 
-## Current status
-The .pyt file has been created and works in the environment of ArcGIS Pro. After the first run, it seems to retain some memory, which eventually causes the program to crash. Therefore, I have isolated the code for semantic segmentation into the torchgeo_logic.py file. So far, I can run the script successfully and obtain an output GeoTIFF file with the segmentation. It recognizes the dominant classes and can assign them to the correct areas. However, smaller classes are suppressed and the shape of the fields is strongly generalized.\\
 
-In order to use the GPU on my MacBook, I created a new file [torchgeo_logic_GPU_Mac_stitched.py](https://github.com/ClaraVth/torchgeo_arcgis/blob/main/torchgeo_logic_GPU_Mac_stitched.py) which runs much faster than the original file using the CPU. To implement that into the .pyt file keeps to be solved with a Windows PC.
-
-## Example Usage
+### Example Usage
 I downloaded the Landsat 7, Landsat 8, and CDL datasets for testing from [here](https://huggingface.co/datasets/torchgeo/tutorials/tree/main).\
 Larger datasets can be loaded from the [USGS EarthExplorer](https://earthexplorer.usgs.gov) and [USDA](https://www.nass.usda.gov/Research_and_Science/Cropland/Release/index.php).
 
