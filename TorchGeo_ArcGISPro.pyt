@@ -425,15 +425,21 @@ class TrainLandUseModel:
         in_image = arcpy.Describe(image_layers).catalogPath
         in_mask = arcpy.Describe(mask_layer).catalogPath
         os.makedirs(out_folder, exist_ok=True)
+        
+        messages.addMessage("Preprocessing...")
         processed_mask, index_to_class = preprocess_mask(in_mask, out_folder)
+        
+        messages.addMessage("Training the model...")
         num_bands, num_classes = train_model(in_image, processed_mask, out_folder, batch_size, epochs, num_workers, patch_size)
 
         test_image = arcpy.Describe(test_image).catalogPath
         trained_model = os.path.join(out_folder, "trained_model.pth")
         output_prediction = os.path.join(out_folder, "prediction_output_raw.TIF")
-    
+
+        messages.addMessage("Prediction...")
         prediction(test_image, trained_model, output_prediction, num_bands, num_classes, patch_size)
 
+        messages.addMessage("Postprocessing...")
         postprocessed_output = os.path.join(out_folder, "prediction.TIF")
         postprocess_prediction(output_prediction, postprocessed_output, index_to_class)
 
