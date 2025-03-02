@@ -13,7 +13,7 @@ Next steps:
 - Integrate the usage of a GPU into the .pyt script
 - Give the user more options:
   - Select the DL-model (current default: U-Net with ResNet50 backbone)
-  - Allow multiple input images and masks
+  - Allow multiple input images and corresponding masks
   - Allow to use an individually pretrained model
   - Add more Trainers like Instance Segmentation or Classification
 - Implement details for a better user experience:
