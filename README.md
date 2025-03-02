@@ -14,7 +14,7 @@ Next steps:
 - Give the user more options:
   - Select the DL-model (current default: U-Net with ResNet50 backbone)
   - Allow multiple input images and masks
-  - Allow to use a pretrained model
+  - Allow to use an individually pretrained model
   - Add more Trainers like Instance Segmentation or Classification
 - Implement details for a better user experience:
   - Automatic Symbolization of the result with the classes from the mask layer
